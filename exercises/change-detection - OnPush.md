@@ -34,11 +34,8 @@ Afterwards, use the component in the `AppComponents` template and serve the appl
     <summary>show solution</summary>
 
 ```bash
-# generate module
-ng g m shared/dirty-checks
-
 # generate component
-ng g c shared/dirty-checks
+ng g c shared/dirty-checks --standalone
 ```
 
 ```typescript
@@ -60,6 +57,7 @@ import { Component, ElementRef, NgModule } from "@angular/core";
       }
     `,
     ],
+   standalone: true
 })
 export class DirtyChecksComponent {
   private _renders = 0;
@@ -71,29 +69,19 @@ export class DirtyChecksComponent {
 
 ```
 
-```ts
-// dirty-checks.module.ts
-
-@NgModule({
-  declarations: [DirtyChecksComponent],
-  exports: [DirtyChecksComponent],
-})
-export class DirtyChecksComponentModule {}
-```
-
 Add import in `app.module.ts`:
 
 ```typescript
 // Exercise 3: Include dirty checks module import here.
 
-import { DirtyChecksModule } from "./shared/dirty-checks.module";
+import { DirtyChecksComponent } from "./shared/dirty-checks.component";
 ```
 
 And include it.
 
 ```typescript
-// Exercise 3: Include dirty checks module
-    DirtyChecksModule,
+
+  DirtyChecksComponent,
 ```
 
 Add `<dirty-checks>` component in `app.component.ts` template:
