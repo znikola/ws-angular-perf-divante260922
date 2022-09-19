@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { map, Observable, shareReplay } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { TMDBMovieCreditsModel } from '../shared/model/movie-credits.model';
 import { TMDBMovieDetailsModel } from '../shared/model/movie-details.model';

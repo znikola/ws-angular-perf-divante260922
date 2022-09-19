@@ -10,6 +10,13 @@ const routes: Routes = [
       ),
   },
   {
+    path: 'list/genre/:id',
+    loadChildren: () =>
+      import('./movie/movie-list-page/movie-list-page.module').then(
+        (file) => file.MovieListPageModule
+      ),
+  },
+  {
     path: 'movie/:id',
     loadChildren: () =>
       import('./movie/movie-detail-page/movie-detail-page.module').then(
@@ -28,13 +35,6 @@ const routes: Routes = [
     loadChildren: () =>
       import('./movie/my-movie-list/my-movie-list.module').then(
         (file) => file.MyMovieListModule
-      ),
-  },
-  {
-    path: 'list/genre/:id',
-    loadChildren: () =>
-      import('./movie/movie-genre-page/movie-genre-page.module').then(
-        (file) => file.MovieGenrePageModule
       ),
   },
   {

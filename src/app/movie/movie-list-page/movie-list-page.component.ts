@@ -1,6 +1,6 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Observable, Subscription } from 'rxjs';
+import { map, switchMap } from 'rxjs';
 import { MovieModel } from '../movie-model';
 import { MovieService } from '../movie.service';
 
@@ -9,10 +9,8 @@ import { MovieService } from '../movie.service';
   templateUrl: './movie-list-page.component.html',
   styleUrls: ['./movie-list-page.component.scss'],
 })
-export class MovieListPageComponent implements OnInit, OnDestroy {
-  movies$!: Observable<{ results: MovieModel[] }>;
-
-  private sub!: Subscription;
+export class MovieListPageComponent implements OnInit {
+  movies: MovieModel[] = [];
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -20,12 +18,28 @@ export class MovieListPageComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit() {
-    this.sub = this.activatedRoute.params.subscribe((params) => {
-      this.movies$ = this.movieService.getMovieList(params['category']);
-    });
-  }
-
-  ngOnDestroy() {
-    this.sub?.unsubscribe();
+    this.activatedRoute.params
+      .pipe(
+        switchMap((params) => {
+          if (params['category']) {
+            return this.movieService
+              .getMovieList(params['category'])
+              .pipe(map(({ results }) => results));
+          } else {
+            return this.movieService.getMoviesByGenre(params['id']);
+          }
+        })
+      )
+      .subscribe((movies) => (this.movies = movies)); /*.subscribe((params) => {
+      if (params['category']) {
+        this.movieService
+          .getMovieList(params['category'])
+          .subscribe(({ results }) => (this.movies = results));
+      } else {
+        this.movieService
+          .getMoviesByGenre(params['id'])
+          .subscribe((movies) => (this.movies = movies));
+      }
+    });*/
   }
 }

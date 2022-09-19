@@ -236,6 +236,52 @@ You should now see the timing of the network request has moved from `AppShellCom
 
 ![genre-request-initializer](images/network/genre-request-initializer.png)
 
+## Cancel not needed requests
+
+In this exercise we will make use of `RxJs` flattening operators in order to control the flow of our HTTP Requests.
+Please open the `Network` tab of your Dev Tools. In order to properly measure the results for this exercise I highly recommend
+activating network throttling (`Slow 3G`).
+
+Now, inspect the `XHR` requests being made while you navigate between different pages of the application.
+
+You should notice that no request is ever cancelled even though you probably don't need the result anymore.
+
+![requests not cancelled](images/network/requests-not-cancelled.png)
+
+We can optimise this behavior by using the `rxjs switchMap` operator.
+
+Your task is now to implement business logic that will cancel ongoing requests made to either `genre` or `movie/list/{category}`.
+The requests are currently handled in `MovieListPageComponent`. This will be the component you need to introduce changes in order to solve this task.
+
+When you've finished your task, do the network analysis again. You should now see the requests being marked as `cancelled`. 
+
+![cancelled requests](images/network/cancelled-requests.png)
+
+<details>
+  <summary>Show Help</summary>
+
+Introduce a `switchMap` which will automatically unsubscribe the ongoing request when params are changing.
+
+```ts
+// movie-list-page.component.ts
+
+this.activatedRoute.params
+  .pipe(
+    switchMap((params) => {
+      if (params['category']) {
+        return this.movieService
+          .getMovieList(params['category'])
+          .pipe(map(({ results }) => results));
+      } else {
+        return this.movieService.getMoviesByGenre(params['id']);
+      }
+    })
+  )
+  .subscribe((movies) => (this.movies = movies));
+```
+
+</details>
+
 ## Bonus inline loader style
 
 To make an additional improvement for LCP and also reduce [Cumulative Layout Shift (CLS)](https://web.dev/i18n/en/cls/) we can inline our app launcher styles.
