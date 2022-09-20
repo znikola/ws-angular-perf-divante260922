@@ -1,190 +1,128 @@
 # Scheduling Exercise: Prioritize Work
 
-We are already fully zone-less however we need to fix some more issues.
-In this exercise you will see how we can fix `async` pipe issue and make a huge performance improvements with rx-angular structural directives.
+We learned about how scheduling can improve the performance of our application. The next to step is to not only splice up
+the work executed in our application, but also control the execution timing of it in order to improve the
+UX.
 
-This improvements focusing on TBT metric. Especially big impact has `rxFor` directive that reduces this metric drastically.
+In order to solve the tasks for this exercise, please clone the [perf-playground repository](https://github.com/push-based/perf-playground).
 
-## Fix application shell
+```bash
+git clone https://github.com/push-based/perf-playground.git
 
-First we will fix our application shell.
+cd perf-playground
 
-We need to add 2 imports to `app-shell.module.ts`:
+npm install
 
-```typescript
-// Exercise 6: Add ForModule & LetModule imports here
-
-import { LetModule } from "@rx-angular/template/let";
-import { ForModule } from "@rx-angular/template/experimental/for";
+npm run start
 ```
 
-Provide them:
+Open your browser at `http://localhost:4200/scheduling/prioritize`. You should see a skeleton which looks like
+a typical web application divided into 4 sections:
 
-```typescript
-  imports: [
-    CommonModule,
-    RouterModule,
-    HamburgerButtonModule,
-    SideDrawerModule,
-    SearchBarModule,
-    DarkModeToggleModule,
-    LazyModule,
-    SvgIconModule,
-    // Exercise 6: Add ForModule & LetModule here
-    ForModule,
-    LetModule,
-  ],
-```
+* sidebar
+* header
+* content
+* footer
 
-Replace top level async pipe with `rxLet` directive in `app-shell.component.html`:
+Each of these sections contain content with different "weight" in order to be able to let simulate scenarios with different
+sized apps.
 
-```
-<!-- Exercise 6: Replace it with rxLet  directive -->
-<ng-container *rxLet="viewState$; let vs">
-```
+The amount of work executed per section can be configured by changing the value of the `work` input.
 
-Replace `ngFor` with `rxFor`:
+## Analyse current state
+
+Start by navigating to and from the exercise application. With the default setting (`work = 300`), you should already
+notice a slight delay when navigating to the view.
+
+Confirm your feeling by creating a recording of the navigation event and investigate the outcome for potential `long tasks`.
+
+For this, open the dev tools with `F12` or `Ctrl + Shift + I` and go to the `Performance Tab`.
+Hit the `record` button and do the navigation. When you've finished, stop the recording by again hitting the record button.
+
+![start-recording](images/scheduling-prioritize/start-recording.png)
+
+You should see a result similar to the following.
+
+![initial-state](images/scheduling-prioritize/initial-state-long-task.png)
+
+## Make rendering unblocking
+
+If you take a look at the template of `PrioritizeComponent`, you will notice that all the values are bound with `async` pipes.
+
+Your task is to introduce the `rxLet` and replace the usage of `async` pipe in order to divide the work being done into pieces.
+
+<details>
+  <summary>Show Help</summary>
+
 
 ```html
-<!-- Exercise 6: Replace ngFor with rxFor -->
-<a
-  [attr.data-uf]="'menu-gen-' + genre.id"
-  *rxFor="let genre of genres$; trackBy: trackByGenre"
-  class="navigation--link"
-  [routerLink]="['/list', 'genre', genre.id]"
-  routerLinkActive="active"
->
-  <div class="navigation--menu-item">
-    <svg-icon class="navigation--menu-item-icon" name="genre"></svg-icon>
-    {{ genre.name }}
-  </div>
-</a>
+<!--prioritize.component.html-->
+
+<div class="sidebar">
+  Sidebar
+  <pp-work *rxLet="sidebarWork$; let work" [work]="work"></pp-work>
+</div>
+<div class="header">
+  Header
+  <pp-work *rxLet="headerWork$; let work" [work]="work"></pp-work>
+</div>
+<div class="content">
+  Content
+  <pp-work *rxLet="contentWork$; let work" [work]="work"></pp-work>
+</div>
+<div class="footer">
+  Footer
+  <pp-work *rxLet="footerWork$; let work" [work]="work"></pp-work>
+</div>
 ```
 
-As a result of this replacements we enabled local change detection in app shell and enabled chunked rendering for genres list.
+</details>
 
-## Fix movie list page
+Great, now repeat the recording from before and take a look at the result.
+You should observe how `rxLet` directive separated the work of each section into its own piece of work, thus making the navigation
+event much faster.
 
-Add `LetModule` to `movie-list-page.module.ts`:
+Your measurement should be comparable to this example:
 
-```typescript
-// Exercise 6: Add LetModule import here
+![chunked-example](images/scheduling-prioritize/chunked-example.png)
 
-import { LetModule } from "@rx-angular/template/let";
-```
+Well done! 
 
-Add it to the imports:
+## Prioritize work
 
-```typescript
-  imports: [
-    CommonModule,
-    RouterModule.forChild(ROUTES),
-    MovieListModule,
-    IfModule,
-    LetModule,
-  ],
-```
+Now that we've pulled our template work apart, we can go ahead and think about in which order we might want to render
+our template.
 
-Now we need to refactor a template.
+Most of the time, the important parts are rendered withing the `body/content` section of an application. Right now,
+the `rxLet` directive will simply execute the work in order in which it is defined in the template. For our demo application
+this means the `sidebar` will be rendered first, the `header` second, `content` third and `footer` last.
 
-Go to `movie-list-page.component.html` and refactor header:
+In order to achieve the goal of rendering the `content` first, we can make use of the concept of `prioritization`.
 
-```html
-<!-- Exercise 6: Refactor header -->
+> Tip: Priorities are abstracted by the concept of `RenderStrategies`
+> 
+> 1 - `immediate`
+> 2 - `userBlocking`
+> 3 - `normal`
+> 4 - `low`
+> 5 - `idle`
 
-<header *rxLet="headings$; let heading">
-  <h1 data-uf="header-main">{{ heading.main }}</h1>
-  <h2 data-uf="header-sub">{{ heading.sub }}</h2>
-</header>
-```
+Your task is to apply fitting `RenderStrategies` to the `rxLet` directive instances in order to make the `content` be rendered
+first.
 
-Remove `async` pipe in `[movies]` input, pass observable directly:
+There are different ways in order to solve this task. As an additional exercise you can also try to optimise the performance even
+further by fine-tuning the strategies of all directives. This will also mean to consider the `render deadlines` for each of the strategies.
 
-```html
-<!-- Exercise 6: Pass observable directly -->
+I recommend the following order of rendering:
 
-<ui-movie-list (paginate)="paginate()" [movies]="movies$"> </ui-movie-list>
-```
+* `content`
+* `sidebar`
+* `header`
+* `footer` (completely non-blocking)
 
-Refactor loader:
+After you've assigned different strategies, do another recording so that you can compare the runtime performance directly after
+changing the values.
 
-```html
-<!-- Exercise 6: Refactor loader -->
-
-<div *rxLet="loading$" class="loader"></div>
-```
-
-### Pro tip
-
-In zone.js application we can reduce 1 CD cycle by passing observable directly.
-
-Usual way of passing observable to child component is next:
-
-```html
-<ui-movie-list (paginate)="paginate()" [movies]="movies$ | async">
-</ui-movie-list>
-```
-
-This means that global change detection will kick in 2 times:
-
-- Form `async` pipe
-- When value will be evaluated by child component
-
-We can remove 1 CD cycle if we pass observable directly to child and subscribe to it inside with `rxLet`.
-
-## Fix movie-list component
-
-We need to add 2 imports to `movie-list.module.ts`:
-
-```typescript
-// Exercise 6: Add ForModule & LetModule imports here
-
-import { LetModule } from "@rx-angular/template/let";
-import { ForModule } from "@rx-angular/template/experimental/for";
-```
-
-Provide them:
-
-```typescript
-  imports: [
-    CommonModule,
-    RouterModule,
-    StarRatingModule,
-    ElementVisibilityModule,
-    SvgIconModule,
-    GridListModule,
-    IfModule,
-    ForModule,
-    LetModule
-  ],
-```
-
-Now we will fix top level observable in `movie-list.component.ts` with `rxLet` and suspense template.
-
-Go to `movie-list.component.ts` and do the following:
-
-```html
-<ui-grid-list *rxLet="moviesListVisible$; rxSuspense: noData">
-  ...
-</ui-grid-list>
-```
-
-Replace `ngFor` with `rxFor`:
-
-```html
-<!-- Exercise 6: Replace ngFor with rxFor -->
-<a
-  class="ui-grid-list-item"
-  *rxFor="
-          let movie of movies$;
-          index as idx;
-          trackBy: trackByMovieId
-        "
-  [routerLink]="['/detail/movie', movie.id]"
-  [attr.data-uf]="'movie-' + idx"
-></a>
-```
-
-## Measuring results
-
-Now you can go to the browser and measure the end results.
+You might also want to consider `update` scenarios. The strategies not only affect the bootstrap phase of the component, but also
+received updates during its lifecycle. By changing the `work` input value, you'll notice that the updates also are executed in order
+of the configured strategies.

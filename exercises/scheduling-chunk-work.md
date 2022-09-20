@@ -189,3 +189,11 @@ Do another performance recording of the movie-list and search for the chunked li
 
 
 Well done! You have successfully mastered the single-thread :-)
+
+
+## Bonus: Introduce `rxFor` to genre list
+
+Just as you did before, replace `ngFor` with the `rxFor` directive in the `app-shell.component.html` template
+at the place where the `genre$` data is rendered.
+
+Make sure to measure the result!
