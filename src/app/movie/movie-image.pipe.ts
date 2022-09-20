@@ -4,7 +4,7 @@ import { Pipe, PipeTransform } from '@angular/core';
   name: 'movieImage',
 })
 export class MovieImagePipe implements PipeTransform {
-  transform(value?: string, width = 300): string {
+  transform(value?: string, width = 342): string {
     if (value) {
       return `https://image.tmdb.org/t/p/w${width}/${value}`;
     }
