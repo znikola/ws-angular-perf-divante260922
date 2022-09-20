@@ -255,6 +255,102 @@ Go to `https://csb-yuu1dm.netlify.app/` and try to confirm the following behavio
 
 ### Reduce Condition Complexity
 
+This time we will focus on improving script performance by reducing the branch evaluation complexity
+of conditional branches.
 
+Open your browser at `http://localhost:4200/branches/reduce-path-computation`.
+
+Head to the `ReducePathComputationComponent` as this will be the place for you to implement
+your improvements.
+
+Inspect the implementation of `nonOptimised` and identify the performance issue.
+The method has two executable branches. In order to find out which branch to choose, it has to
+evaluate the condition stated in the `if` statement.
+As you can see it will always start by calling `complexComparison()` before it starts
+comparing the given value.
+
+Your task is to implement a more performant version of this implementation.
+Implement your changes in the `optimised` skeleton method.
+
+<details>
+  <summary>Show Help</summary>
+
+```ts
+// src/app/branches/reduce-path-computation/reduce-path-computation.component.ts
+
+private optimised(): void {
+  if (
+    this.value <= 100 ||
+    this.complexComparison()
+  ) {
+    this.work();
+  }
+}
+```
+
+</details>
+
+Well done, open your browser at `http://localhost:4200/branches/reduce-path-computation` and
+benchmark your implementation against the original one.
+Don't forget to play around with the `value` count as well as the `complexity` input.
+The `complexity` should affect the runtime performance of both implementations, whereas the
+`value` only affects the `optimised` version.
+
+In case the `value` is actually `<= 100`, the `optimised` implementation should outperform
+the `nonOptimised` implementation by far. If value is set `> 100`, both implementations
+are quite the same when it comes to execution performance.
 
 ### Branchless Programming
+
+The next concept we will discover is `branchless programming`. In the exercise before,
+we optimised the complexity it needs to evaluate to a given path by adjusting the order
+in which code gets executed.
+This exercise is all about avoiding work that is not needed and prepare our application
+upfront to mitigate the need for branches at all.
+
+Open your browser at `http://localhost:4200/branches/branchless-programming`.
+
+Head to the `BranchlessProgrammingComponent` as this will be the place for you to implement
+your improvements.
+
+Inspect the implementation of `withBranches` and identify the performance issue.
+The method has 7 branches it can evaluate too and will do so on every function call.
+
+Your task is to find a way have your program to not execute any branch at all.
+To do so, prepare some form of `Loop Table` that holds all the decisions already in 
+memory. Feel free to use the prepared `preparedBranches: Record<string, string>`
+property for it.
+
+Implement your changes in the `branchless` skeleton method.
+
+<details>
+  <summary>Show Help</summary>
+
+```ts
+// src/app/branches/branchless-programming/branchless-programming.component.ts
+
+private preparedBranches: Record<string, string> = {
+  Rudolf: "Heya, Rudolf!",
+  Maria: "Good Morning, Maria!",
+  Ben: "How are you, Ben?",
+  Sarah: "Welcome, Sarah.",
+  Jon: "See you soon, Jon.",
+  Peter: "Hey Peter",
+  Petra: "Ciao Petra"
+};
+
+private branchless(): string {
+  return this.preparedBranches[this.name];
+}
+```
+
+</details>
+
+Very good, open your browser at `http://localhost:4200/branches/branchless-programming` and
+benchmark your implementation against the original one.
+Don't forget to play around with the `iterations` count.
+Sadly, my own research showed that this is not an "improvement" at all. Feel free to add more
+branches to the code in order to find out if there will ever be a benefit or not.
+
+
+
