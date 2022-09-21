@@ -7,11 +7,12 @@
 }
 
 .movie-card {
-  transition: transform .15s cubic-bezier(.4,0,.2,1) 0s;
+  transition: box-shadow .15s cubic-bezier(.4,0,.2,1) 0s,
+    transform .15s cubic-bezier(.4,0,.2,1) 0s;
 }
 
 .movie-card:hover {
-  transform: scale(1.03);
+  box-shadow: 0 0 7px 4px rgba(0, 0, 0, .6)
 }
 
 .movie-card-content {

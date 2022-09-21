@@ -23,7 +23,9 @@ export class MovieService {
   }
 
   getMoviesByGenre(
-    genre: TMDBMovieGenreModel['id']
+    genre: TMDBMovieGenreModel['id'],
+    page: string = '1',
+    sortBy = 'popularity.desc'
   ): Observable<TMDBMovieModel[]> {
     return this.httpClient
       .get<{ results: TMDBMovieModel[] }>(
@@ -31,6 +33,8 @@ export class MovieService {
         {
           params: {
             with_genres: genre,
+            page,
+            sort_by: sortBy,
           },
         }
       )
@@ -55,12 +59,18 @@ export class MovieService {
     );
   }
 
-  getMovieList(category: string): Observable<{ results: MovieModel[] }> {
+  getMovieList(
+    category: string,
+    page: string = '1',
+    sortBy = 'popularity.desc'
+  ): Observable<TMDBMovieModel[]> {
     const { tmdbBaseUrl: baseUrl } = environment;
 
-    return this.httpClient.get<{ results: MovieModel[] }>(
-      `${baseUrl}/3/movie/${category}`
-    );
+    return this.httpClient
+      .get<{ results: TMDBMovieModel[] }>(`${baseUrl}/3/movie/${category}`, {
+        params: { page, sort_by: sortBy },
+      })
+      .pipe(map(({ results }) => results));
   }
 
   searchMovies(query: string): Observable<MovieModel[]> {

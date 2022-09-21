@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { MovieModel } from '../movie-model';
+import { concat, exhaustMap, filter, map, Observable, Subject } from 'rxjs';
+import { TMDBMovieModel } from '../../shared/model/movie.model';
 import { MovieService } from '../movie.service';
 
 @Component({
@@ -9,7 +10,9 @@ import { MovieService } from '../movie.service';
   styleUrls: ['./movie-list-page.component.scss'],
 })
 export class MovieListPageComponent implements OnInit {
-  movies: MovieModel[] = [];
+  movies: TMDBMovieModel[] = [];
+
+  readonly paginate$ = new Subject<boolean>();
 
   constructor(
     private activatedRoute: ActivatedRoute,
@@ -19,14 +22,30 @@ export class MovieListPageComponent implements OnInit {
   ngOnInit() {
     this.activatedRoute.params.subscribe((params) => {
       if (params['category']) {
-        this.movieService
-          .getMovieList(params['category'])
-          .subscribe(({ results }) => (this.movies = results));
+        this.paginate((page) =>
+          this.movieService.getMovieList(params['category'], page)
+        ).subscribe((movies) => (this.movies = movies));
       } else {
-        this.movieService
-          .getMoviesByGenre(params['id'])
-          .subscribe((movies) => (this.movies = movies));
+        this.paginate((page) =>
+          this.movieService.getMoviesByGenre(params['id'], page)
+        ).subscribe((movies) => (this.movies = movies));
       }
     });
+  }
+
+  private paginate(
+    requestFn: (page: string) => Observable<TMDBMovieModel[]>
+  ): Observable<TMDBMovieModel[]> {
+    return concat(
+      requestFn('1'),
+      this.paginate$.pipe(
+        filter(Boolean),
+        exhaustMap((v, i) =>
+          requestFn(`${i + 2}`).pipe(
+            map((movies) => [...this.movies, ...movies])
+          )
+        )
+      )
+    );
   }
 }

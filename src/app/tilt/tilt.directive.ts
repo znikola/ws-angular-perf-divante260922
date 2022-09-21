@@ -6,10 +6,8 @@ import { Directive, HostBinding, HostListener, Input } from '@angular/core';
 export class TiltDirective {
   @Input('tilt') rotationDegree = 30;
 
-  @Input('tiltColor') color!: string;
-
   @HostListener('mouseenter', ['$event.pageX', '$event.target'])
-  thisIsMyEventListenerCbName(pageX: number, target: HTMLElement) {
+  onMouseEnter(pageX: number, target: HTMLElement) {
     const pos = determineDirection(pageX, target);
 
     this.rotation =

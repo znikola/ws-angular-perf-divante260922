@@ -8,29 +8,37 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { RxActionFactory } from '@rx-angular/state/actions';
-import { observeElementVisibility } from './observe-element-visibility';
-import { takeUntil } from 'rxjs';
+import { fromEvent, map, takeUntil } from 'rxjs';
 
 type Actions = { visible: boolean; onDestroy: void };
 
 @Directive({
-  selector: '[elementVisibility]',
+  selector: '[elementVisible]',
   providers: [RxActionFactory],
+  standalone: true,
 })
 export class ElementVisibilityDirective implements OnDestroy {
   signals = this.actionsF.create();
 
-  @Output()
-  elementVisibility = this.signals.visible$;
+  @Output() elementVisible = this.signals.visible$;
 
   constructor(
     private actionsF: RxActionFactory<Actions>,
-    elRef: ElementRef,
+    private elementRef: ElementRef<HTMLElement>,
     @Inject(PLATFORM_ID) platformId: Object
   ) {
     if (isPlatformBrowser(platformId)) {
-      observeElementVisibility(elRef.nativeElement)
-        .pipe(takeUntil(this.signals.onDestroy$))
+      fromEvent(document, 'scroll')
+        .pipe(
+          map(() => {
+            const { scrollTop, clientHeight } = document.scrollingElement;
+            return (
+              scrollTop + clientHeight + 100 >=
+              elementRef.nativeElement.offsetTop
+            );
+          }),
+          takeUntil(this.signals.onDestroy$)
+        )
         .subscribe(this.signals.visible);
     }
   }
