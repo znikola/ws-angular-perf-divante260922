@@ -197,7 +197,6 @@ ui-side-drawer {
   flex: 1;
   overflow: auto;
   font-size: var(--text-md);
-  font-weight: bold;
 
   a {
     outline: none;
@@ -212,6 +211,7 @@ ui-side-drawer {
 
     &:hover {
       text-decoration: underline;
+      font-weight: bold;
     }
   }
 
