@@ -1,7 +1,7 @@
 <div class="movie-card"
      [tilt]="40"
      (click)="movieClicked()">
-
+  <dirty-check></dirty-check>
   <img class="movie-image"
        alt="Turning Red"
        [src]="movie.poster_path | movieImage">

@@ -5,10 +5,11 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppShellModule } from './app-shell/app-shell.module';
 import { AppComponent } from './app.component';
 import { ReadAccessInterceptor } from './read-access.interceptor';
+import { DirtyCheckComponent } from './shared/dirty-check/dirty-check.component';
 
 @NgModule({
   declarations: [AppComponent],
-  imports: [BrowserModule, AppShellModule, AppRoutingModule],
+    imports: [BrowserModule, AppShellModule, AppRoutingModule, DirtyCheckComponent],
   providers: [
     {
       provide: HTTP_INTERCEPTORS,
