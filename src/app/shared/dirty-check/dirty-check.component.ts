@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -18,17 +18,12 @@ import { CommonModule } from '@angular/common';
     }
   `]
 })
-export class DirtyCheckComponent implements OnInit {
+export class DirtyCheckComponent {
 
   private _checked = 0;
 
   get checked(): number {
     return this._checked++;
-  }
-
-  constructor() { }
-
-  ngOnInit(): void {
   }
 
 }
