@@ -20,7 +20,7 @@ As a first step, let's handle the suspense state of the template (the loader).
 The initial suspense state is already in place with the `*ngIf async hack`.  
 
 Start by introducing the `rxLet` Directive to your template in favor of `*ngIf`.   
-You can import the `LetModule` from `'@rx-angular/template/lat'`.
+You can import the `LetModule` from `'@rx-angular/template/let'`.
 
 For the sake of consistency rename the currently in place `ng-template #loader` to `suspense`.
 
@@ -61,9 +61,9 @@ the user again the `suspense` template.
 For this to work, we need to proactively give the `rxLet` Directive a hint that it should switch to the `suspense`
 state.  
 
-We do this by introducing a `suspenseTrg$: Subject<void>` in our `MoviePageComponent`.
+We do this by introducing a `suspenseTrg$: Subject<void>` in our `MovieSearchPageComponent`.
 
-The `MoviePageComponent` needs to call it's `next()` method whenever a new search is fired. This way we can switch to
+The `MovieSearchPageComponent` needs to call it's `next()` method whenever a new search is fired. This way we can switch to
 the suspense template while we are waiting for the next result to be received.
 
 Back in the template, use the `suspenseTrg: suspenseTrg$` input property of the `rxLet` directive to bind the subject to
