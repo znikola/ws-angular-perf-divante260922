@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { concat, exhaustMap, filter, map, Observable, Subject } from 'rxjs';
 import { TMDBMovieModel } from '../../shared/model/movie.model';
@@ -16,7 +16,8 @@ export class MovieListPageComponent implements OnInit {
 
   constructor(
     private activatedRoute: ActivatedRoute,
-    private movieService: MovieService
+    private movieService: MovieService,
+    private cdRef: ChangeDetectorRef
   ) {}
 
   ngOnInit() {
@@ -24,11 +25,17 @@ export class MovieListPageComponent implements OnInit {
       if (params['category']) {
         this.paginate((page) =>
           this.movieService.getMovieList(params['category'], page)
-        ).subscribe((movies) => (this.movies = movies));
+        ).subscribe((movies) => {
+          this.movies = movies;
+          this.cdRef.markForCheck();
+        });
       } else {
         this.paginate((page) =>
           this.movieService.getMoviesByGenre(params['id'], page)
-        ).subscribe((movies) => (this.movies = movies));
+        ).subscribe((movies) => {
+          this.movies = movies;
+          this.cdRef.markForCheck();
+        });
       }
     });
   }

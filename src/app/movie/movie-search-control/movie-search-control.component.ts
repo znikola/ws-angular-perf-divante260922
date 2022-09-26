@@ -35,6 +35,10 @@ export class MovieSearchControlComponent
 
   private movieCache!: MovieModel;
 
+  trackMovie(index: number, movie: MovieModel): string {
+    return movie.id;
+  }
+
   constructor(private movieService: MovieService) {}
 
   ngAfterViewInit(): void {

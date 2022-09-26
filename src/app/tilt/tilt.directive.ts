@@ -1,4 +1,6 @@
-import { Directive, HostBinding, HostListener, Input } from '@angular/core';
+import { Directive, ElementRef, Input } from '@angular/core';
+import { map, merge } from 'rxjs';
+import { fromEvent } from '@rx-angular/cdk/zone-less/rxjs';
 
 @Directive({
   selector: '[tilt]',
@@ -6,23 +8,34 @@ import { Directive, HostBinding, HostListener, Input } from '@angular/core';
 export class TiltDirective {
   @Input('tilt') rotationDegree = 30;
 
-  @HostListener('mouseenter', ['$event.pageX', '$event.target'])
-  onMouseEnter(pageX: number, target: HTMLElement) {
-    const pos = determineDirection(pageX, target);
+  constructor(
+    private elementRef: ElementRef<HTMLElement>
+  ) {
+    const { nativeElement } = elementRef;
 
-    this.rotation =
-      pos === 0
-        ? `rotate(${this.rotationDegree}deg)`
-        : `rotate(-${this.rotationDegree}deg)`;
+    const rotate$ = fromEvent<MouseEvent>(
+      nativeElement,
+      'mouseenter'
+    ).pipe(
+      map(({ pageX}) => {
+        const pos = determineDirection(pageX, nativeElement);
+
+        return pos === 0
+          ? `rotate(${this.rotationDegree}deg)`
+          : `rotate(-${this.rotationDegree}deg)`;
+      })
+    );
+
+    const reset$ = fromEvent(
+      nativeElement,
+      'mouseleave'
+    ).pipe(map(() => 'rotate(0deg)'));
+
+    merge(rotate$, reset$).subscribe(rotationDegree => {
+      nativeElement.style.transform = rotationDegree;
+    })
+
   }
-
-  @HostListener('mouseleave')
-  onMouseLeave() {
-    this.rotation = 'rotate(0deg)';
-  }
-
-  @HostBinding('style.transform')
-  rotation = 'rotate(0deg)';
 }
 
 /**
