@@ -29,3 +29,4 @@ requestAnimationFrame();
 
 </details>
 
+Solution: https://stackblitz.com/edit/js-execution-timings-exercise
